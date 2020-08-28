@@ -16,6 +16,8 @@ MOUSE_EVENT=$(ls -l /dev/input/by-id | grep mouse | grep -o 'event[0-9]' | head 
 RIGHT_FOCUS='false'
 LEFT_FOCUS='true'
 
+EXEC_PATH=$(dirname "$0")
+
 check_pid_exist()
 {
     #echo 'inside check_pid_exist'
@@ -39,13 +41,13 @@ clear_exist_app()
     if [ "$RIGHT_FOCUS" = 'true' ]; then
         if ( check_pid_exist "$RIGHT_PID" ); then
             kill $RIGHT_PID
-            echo kill right_pid
+            echo kill right_pid $RIGHT_PID
             RIGHT_PID=''
         fi
     elif [ "$LEFT_FOCUS" = 'true' ]; then
         if ( check_pid_exist "$LEFT_PID" ); then
             kill $LEFT_PID
-            echo kill left_pid
+            echo kill left_pid $LEFT_PID
             LEFT_PID=''
         fi
     fi
@@ -55,7 +57,7 @@ clear_exist_app()
 assign_pid()
 {   
     echo assign_pid
-    echo PID is $1
+    echo PID is "$1"
     if [ "$RIGHT_FOCUS" = 'true' ]; then
         RIGHT_PID="$1"
         echo RIGHT_PID $RIGHT_PID
@@ -65,6 +67,27 @@ assign_pid()
     fi
 }
 
+
+# parameter: 1. key_code 2. APP_NAME
+start_demo_app ()
+{
+    evtest --query /dev/input/$KEYBOARD_EVENT EV_KEY "$1"
+    if [ $? -eq 10 ]; then
+        echo ""$1" pressed"
+        clear_exist_app
+        if [ -n "$2" ]; then
+            eval ""$2" &"
+            if [ $? -eq 0 ]; then
+                assign_pid "$!"
+            fi
+        fi
+    fi
+}
+
+echo ########################################################
+echo Start DEMP APP
+echo ########################################################
+
 while true
 do
     # Control cursor to left display or right display
@@ -73,7 +96,7 @@ do
     	echo "KEY_RIGHT pressed"
         for i in `seq 1 6` 
         do
-            evemu-play /dev/input/$MOUSE_EVENT < right.evemu
+            evemu-play /dev/input/$MOUSE_EVENT < $EXEC_PATH/right.evemu
             sleep 0.01
         done
         RIGHT_FOCUS='true'
@@ -85,7 +108,7 @@ do
     	echo "KEY_LEFT pressed"
         for i in `seq 1 6`
         do
-            evemu-play /dev/input/$MOUSE_EVENT < left.evemu
+            evemu-play /dev/input/$MOUSE_EVENT < $EXEC_PATH/left.evemu
             sleep 0.01
         done
         RIGHT_FOCUS='false'
@@ -93,57 +116,21 @@ do
     fi
 
     # Activate different DEMO App
-    evtest --query /dev/input/$KEYBOARD_EVENT EV_KEY KEY_1
-    if [ $? -eq 10 ]; then
-    	echo "KEY_1 pressed"
-        clear_exist_app
-        export TEST_FILE=/home/root/movie/bbb-1920x1080-cfg02.mkv
-        ( gst-launch-1.0 playbin3 uri=file://$TEST_FILE ) &
-        if [ $? -eq 0 ]; then
-            assign_pid $!
-        fi    
-    fi
+    start_demo_app "KEY_1" 'gst-launch-1.0 playbin3 uri=file:///home/root/movie/bbb-1920x1080-cfg02.mkv'
 
-    evtest --query /dev/input/$KEYBOARD_EVENT EV_KEY KEY_2
-    if [ $? -eq 10 ]; then
-    	echo "KEY_2 pressed"
-        clear_exist_app
-        export TEST_FILE=/home/root/movie/honey.mp4
-        ( gst-launch-1.0 playbin3 uri=file://$TEST_FILE ) &
-        if [ $? -eq 0 ]; then
-            assign_pid $!
-        fi    
-    fi
+    start_demo_app "KEY_2" 'gst-launch-1.0 playbin3 uri=file:///home/root/movie/ink.mp4'
 
-    evtest --query /dev/input/$KEYBOARD_EVENT EV_KEY KEY_3
-    if [ $? -eq 10 ]; then
-    	echo "KEY_3 pressed"
-        clear_exist_app
-        ( glmark2-es2-wayland ) &
-        if [ $? -eq 0 ]; then
-            assign_pid $!
-        fi       
-    fi
+    start_demo_app "KEY_3" "glmark2-es2-wayland"
 
-    evtest --query /dev/input/$KEYBOARD_EVENT EV_KEY KEY_4
-    if [ $? -eq 10 ]; then
-    	echo "KEY_4 pressed"
-        clear_exist_app
-        ( /usr/share/cinematicexperience-1.0/Qt5_CinematicExperience ) &
-        if [ $? -eq 0 ]; then
-            assign_pid $!
-        fi    
-    fi
+    start_demo_app "KEY_4" "/usr/share/cinematicexperience-1.0/Qt5_CinematicExperience"
 
-    evtest --query /dev/input/$KEYBOARD_EVENT EV_KEY KEY_0
-    if [ $? -eq 10 ]; then
-    	echo "KEY_0 pressed"
-        killall gst-launch-1.0 &
-        killall glmark2-es2-wayland &
-        killall Qt5_CinematicExperience &
-        # test rsync
-    fi
+    start_demo_app "KEY_5" "/usr/share/qt5nmapper-1.0/Qt5_NMapper"
 
+    start_demo_app "KEY_6" "/usr/share/qt5nmapcarousedemo-1.0/Qt5_NMap_CarouselDemo"
 
-    sleep 0.01
+    start_demo_app "KEY_7" "/usr/share/qt5everywheredemo-1.0/QtDemo"
+
+    start_demo_app "KEY_ESC"
+
+    #sleep 0.01
 done
