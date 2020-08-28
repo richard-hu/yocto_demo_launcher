@@ -1,0 +1,10 @@
+The launcher used to activate demo APP in dual-display wayland desktop of Yocto.
+
+It requires to plug a keyboard and a mouse.
+Mouse is used to generate a mouse input device to feed simulated mouse movement.
+Keyboard is used to choose left/right monitor and demo APP.  
+
+How to use the script:
+
+keyboard: "left" and "right" key: move mouse cursor to choose to activate APP on left or right monitor
+keyboard: number key "0"~"9": choose different DEMO APP
