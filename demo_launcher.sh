@@ -1,5 +1,15 @@
 #!/bin/bash
 
+#################################################################################
+# Copyright 2019 Technexion Ltd.
+#
+# Author: Richard Hu <richard.hu@technexion.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+#################################################################################
+
 KEYBOARD_EVENT=$(ls -l /dev/input/by-id | grep kbd | grep -o 'event[0-9]' | head -1)
 MOUSE_EVENT=$(ls -l /dev/input/by-id | grep mouse | grep -o 'event[0-9]' | head -1)
 
